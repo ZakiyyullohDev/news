@@ -16,23 +16,25 @@ const NewsModel = {
         const decodedToken = JWT.verifyToken(token)
         const getNew = await queryFunc(`SELECT * FROM new WHERE new_creator_id = $1 AND new_id = $2`, decodedToken, new_id)
         
-        return getNew[0]
+        return getNew
     },
     createNew: async function (body, token, new_image) {
         
         const { new_title, new_desc } = body
         const decodedToken = JWT.verifyToken(token)
-        const new_image_ext = new_image.mimetype.split("/")[1]
         
         const insertInfo = await queryFunc(`INSERT INTO new(new_title, new_desc, new_creator_id) VALUES($1, $2, $3) RETURNING *`, new_title, new_desc, decodedToken)
         
+        if (!new_image) {
+            return ''
+        }
+        const new_image_ext = new_image.mimetype.split("/")[1]
+
         new_image.mv(`${process.cwd()}/uploads/news/${insertInfo[0].new_id}.${new_image_ext}`, (err) => {
             if (err) {
                 throw new exceptionLib.HttpException(500, "Internal Server Error", exceptionLib.errors.INTERNAL_SERVER_ERROR)                
             }
         })
-        
-        return insertInfo[0]
         
     },
     editNew: async function (body, token, new_image, new_id) {
@@ -47,18 +49,19 @@ const NewsModel = {
         
         const insertInfo = await queryFunc(`UPDATE new SET new_title = $1, new_desc = $2 WHERE new_creator_id = $3 AND new_id = $4 RETURNING *`, new_title || getNew[0].new_title, new_desc || getNew[0].new_desc, decodedToken, new_id)
         
+        if (!new_image) {
+            return ''
+        }
+
+        const imageExt = new_image.mimetype.split("/")[1]
+
         if (new_image !== null) {
-            return new_image.mv(`${process.cwd()}/uploads/news/${new_id}.jpg`, (err) => {
+            return new_image.mv(`${process.cwd()}/uploads/news/${new_id}.${imageExt}`, (err) => {
                 if (err) {
                     throw new exceptionLib.HttpException(500, "Internal Server Error", exceptionLib.errors.INTERNAL_SERVER_ERROR)
                 }
             })
-        }
-
-        if (new_image === null) {
-            return insertInfo[0]
-        }
-        
+        }        
     },
     deleteNew: async function (new_id) {
         const getCurrentNew = await queryFunc(`SELECT * FROM new WHERE new_id = $1`, new_id)

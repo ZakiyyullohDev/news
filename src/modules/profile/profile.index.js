@@ -1,14 +1,15 @@
-import express from 'express'
 import expressValidator from "express-validator"
+import express from 'express'
 
 import authorizationMiddleware from '../../middleware/authorization.middleware.js'
 import checkValidationMiddleware from "../../middleware/validation.middleware.js"
+import uploadFileMiddleware from "../../middleware/uploadFile.middleware.js"
 import profileCtrl from './profile.ctrl.js'
 const app = express.Router()
 
 app.get("/api/profile/", authorizationMiddleware, profileCtrl.getMe)
 
-app.patch("/api/profile/", checkValidationMiddleware,  authorizationMiddleware, [
+app.patch("/api/profile/", authorizationMiddleware, [
     [
         expressValidator.body("user_first_name").optional().isString().isLength({
             min: 3,
@@ -24,8 +25,8 @@ app.patch("/api/profile/", checkValidationMiddleware,  authorizationMiddleware, 
             max: 32
         }),
     ]
-], profileCtrl.editProfile)
+], checkValidationMiddleware, uploadFileMiddleware(false), profileCtrl.editProfile)
 
-app.get("/api/profile/image", checkValidationMiddleware,  authorizationMiddleware, profileCtrl.getProfileImage)
+app.get("/api/profile/image", authorizationMiddleware, profileCtrl.getProfileImage)
 
 export default app

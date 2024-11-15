@@ -12,7 +12,7 @@ app.get("/api/new/:news_id", authorizationMiddleware, [
     [
         expressValidator.param("new_id").notEmpty().isInt()
     ]
-], newsCtrl.getNew)
+], checkValidationMiddleware, newsCtrl.getNew)
 
 app.get("/api/new/", authorizationMiddleware, newsCtrl.getAllNew)
 
@@ -41,7 +41,7 @@ app.patch("/api/new/:news_id", authorizationMiddleware, [
             max: 256
         }),
     ]
-], uploadFileMiddleware(false), checkValidationMiddleware, newsCtrl.editNew)
+], checkValidationMiddleware, uploadFileMiddleware(false), newsCtrl.editNew)
 
 app.delete("/api/new/:new_id", authorizationMiddleware, [
     [
