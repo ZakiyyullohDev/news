@@ -50,18 +50,35 @@ const NewsModel = {
         const insertInfo = await queryFunc(`UPDATE new SET new_title = $1, new_desc = $2 WHERE new_creator_id = $3 AND new_id = $4 RETURNING *`, new_title || getNew[0].new_title, new_desc || getNew[0].new_desc, decodedToken, new_id)
         
         if (!new_image) {
-            return ''
+            return "";
         }
 
-        const imageExt = new_image.mimetype.split("/")[1]
+        const imageExt = new_image.mimetype.split("/")[1];
+        const uploadPath = path.join(
+            process.cwd(),
+            "uploads/news",
+            `${decodedToken}.${imageExt}`
+        );
 
-        if (new_image !== null) {
-            return new_image.mv(`${process.cwd()}/uploads/news/${new_id}.${imageExt}`, (err) => {
-                if (err) {
-                    throw new exceptionLib.HttpException(500, "Internal Server Error", exceptionLib.errors.INTERNAL_SERVER_ERROR)
-                }
-            })
-        }        
+        const newsFolder = path.join(process.cwd(), "uploads/news");
+        const newOldImages = await fs.promises.readdir(newsFolder);
+
+        const tokenToString = decodedToken.toString();
+        const result = newOldImages.find((image) =>
+            image.startsWith(tokenToString)
+        );
+
+        if (result) {
+            const filePath = path.join(newsFolder, result);
+            await fs.promises.unlink(filePath);
+        }
+
+        new_image.mv(uploadPath, (err) => {
+            if (err) {
+                throw new exceptionLib.HttpException(500, "Internal Server Error", exceptionLib.errors.INTERNAL_SERVER_ERROR);
+            }
+        });
+      
     },
     deleteNew: async function (new_id) {
         const getCurrentNew = await queryFunc(`SELECT * FROM new WHERE new_id = $1`, new_id)
