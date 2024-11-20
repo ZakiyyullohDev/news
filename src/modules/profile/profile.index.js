@@ -24,6 +24,7 @@ app.patch("/api/profile/", authorizationMiddleware, [
             min: 8,
             max: 32
         }),
+
     ]
 ], checkValidationMiddleware, uploadFileMiddleware(false), profileCtrl.editProfile)
 

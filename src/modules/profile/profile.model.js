@@ -64,7 +64,7 @@ const ProfileModel = {
         );
 
         const usersFolder = path.join(process.cwd(), "uploads/users");
-        const userOldImages = await fs.promises.readdir(usersFolder);
+        const userOldImages = fs.readdirSync(usersFolder);
 
         const tokenToString = decodedToken.toString();
         const result = userOldImages.find((image) =>
@@ -73,23 +73,19 @@ const ProfileModel = {
 
         if (result) {
             const filePath = path.join(usersFolder, result);
-            await fs.promises.unlink(filePath);
+            fs.unlinkSync(filePath);
         }
 
         user_image.mv(uploadPath, (err) => {
             if (err) {
-                throw new exceptionLib.HttpException(
-                    500,
-                    "Internal Server Error",
-                    exceptionLib.errors.INTERNAL_SERVER_ERROR
-                );
+                throw new exceptionLib.HttpException(500, "Internal Server Error", exceptionLib.errors.INTERNAL_SERVER_ERROR);
             }
         });
     },
     getProfileImage: async function (token) {
         const decodedToken = await JWT.verifyToken(token);
 
-        const files = await fs.promises.readdir(`${process.cwd()}/uploads/users`);
+        const files = fs.readdirSync(`${process.cwd()}/uploads/users`);
         const gettingFile = files.find((file) => (file = decodedToken));
 
         const path = `${process.cwd()}/uploads/users/${gettingFile}`;

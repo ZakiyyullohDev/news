@@ -28,8 +28,11 @@ const newsCtrl = {
     createNew: async function (req, res) {
         
         try {
-            const model = await NewsModel.createNew(req.body, req.headers.authorization, req.files.new_image)
-            return res.status(201).json(model)
+            await NewsModel.createNew(req.body, req.headers.authorization, req.files.new_image)
+            return res.status(201).json({
+                status: 201,
+                message: "New Succesfully Added"
+            })
             
         } catch (error) {
             return res.status(error.status).json({
@@ -61,7 +64,7 @@ const newsCtrl = {
     deleteNew: async function (req, res) {
         try {
             
-            await NewsModel.deleteNew(req.params.new_id);
+            await NewsModel.deleteNew(req.headers.authorization, req.params.new_id);
 
             return res.status(200).json({
                 status: 200,

@@ -7,14 +7,14 @@ import JWT from "../../lib/jwt.lib.js"
 
 const NewsModel = {
     getAllNew: async function () {        
-        const getNew = await queryFunc(`SELECT * FROM new ORDER BY new_created_at DESC`)
+        const getNew = await queryFunc(`SELECT * FROM new ORDER BY new_created_at ASC`)
         
         return getNew
     },
-    getNew: async function (token, new_id) {
+    getNew: async function (token) {
         
         const decodedToken = JWT.verifyToken(token)
-        const getNew = await queryFunc(`SELECT * FROM new WHERE new_creator_id = $1 AND new_id = $2`, decodedToken, new_id)
+        const getNew = await queryFunc(`SELECT * FROM new WHERE new_creator_id = $1 ORDER BY new_id ASC`, decodedToken)
         
         return getNew
     },
@@ -61,7 +61,7 @@ const NewsModel = {
         );
 
         const newsFolder = path.join(process.cwd(), "uploads/news");
-        const newOldImages = await fs.promises.readdir(newsFolder);
+        const newOldImages = fs.readdirSync(newsFolder);
 
         const tokenToString = decodedToken.toString();
         const result = newOldImages.find((image) =>
@@ -70,7 +70,7 @@ const NewsModel = {
 
         if (result) {
             const filePath = path.join(newsFolder, result);
-            await fs.promises.unlink(filePath);
+            fs.unlinkSync(filePath);
         }
 
         new_image.mv(uploadPath, (err) => {
@@ -80,16 +80,17 @@ const NewsModel = {
         });
       
     },
-    deleteNew: async function (new_id) {
-        const getCurrentNew = await queryFunc(`SELECT * FROM new WHERE new_id = $1`, new_id)
+    deleteNew: async function (token, new_id) {
+        const decodedToken = JWT.verifyToken(token)
+        const getCurrentNew = await queryFunc(`SELECT * FROM new WHERE new_id = $1 AND new_creator_id = $2`, new_id, decodedToken)
         
         if (!getCurrentNew.length) {
             throw new exceptionLib.HttpException(404, "New Not Found", exceptionLib.errors.NOT_FOUND)
         }
         
-        await queryFunc(`DELETE FROM new WHERE new_id = $1`, new_id)
+        await queryFunc(`DELETE FROM new WHERE new_id = $1 AND new_creator_id = $2`, new_id, decodedToken)
         
-        const files = await fs.promises.readdir(`${process.cwd()}/uploads/news`)
+        const files = fs.readdirSync(`${process.cwd()}/uploads/news`)
         const deletingFile = files.find(file => file = new_id)
 
         fs.unlinkSync(`${process.cwd()}/uploads/news/${deletingFile}`, (err) => {

@@ -31,7 +31,6 @@ app.post("/api/new/", authorizationMiddleware,[
 
 app.patch("/api/new/:news_id", authorizationMiddleware, [
     [
-        expressValidator.body("new_image").optional(),
         expressValidator.body("news_title").optional().isString().isLength({
             min: 3,
             max: 256
