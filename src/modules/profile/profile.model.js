@@ -1,7 +1,6 @@
 import path from "path";
 import fs from "fs";
 
-import __dirname from "../../config/dirname.config.js";
 import exceptionLib from "../../lib/exception.lib.js";
 import queryFunc from "../../lib/pg.lib.js";
 import JWT from "../../lib/jwt.lib.js";
@@ -86,8 +85,9 @@ const ProfileModel = {
         const decodedToken = await JWT.verifyToken(token);
 
         const files = fs.readdirSync(`${process.cwd()}/uploads/users`);
-        const gettingFile = files.find((file) => (file = decodedToken));
 
+        const gettingFile = files.find((file) => parseInt(file.split('.')[0]) === decodedToken);
+        
         const path = `${process.cwd()}/uploads/users/${gettingFile}`;
 
         const checkFileExists = fs.existsSync(path);
