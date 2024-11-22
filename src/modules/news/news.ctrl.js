@@ -48,8 +48,8 @@ const newsCtrl = {
             const newImage = req.files ? req.files.new_image : null;
             const model = await NewsModel.editNew(req.body, req.headers.authorization, newImage, req.params.news_id);
             
-            return res.status(201).json({
-                status: 201,
+            return res.status(200).json({
+                status: 200,
                 message: "New edited succesfully!"
             });
         } catch (error) {    

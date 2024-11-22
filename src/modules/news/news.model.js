@@ -88,10 +88,13 @@ const NewsModel = {
             throw new exceptionLib.HttpException(404, "New Not Found", exceptionLib.errors.NOT_FOUND)
         }
         
-        await queryFunc(`DELETE FROM new WHERE new_id = $1 AND new_creator_id = $2`, new_id, decodedToken)
+        await queryFunc(`DELETE FROM new WHERE new_id = $1`, new_id)
         
-        const files = fs.readdirSync(`${process.cwd()}/uploads/news`)
-        const deletingFile = files.find(file => file = new_id)
+        const files = fs.readdirSync(`${process.cwd()}/uploads/news/`)
+        
+        const deletingFile = files.find(file => file.split('.')[0] === new_id)
+        console.log("deletingFile " + deletingFile);
+        
 
         fs.unlinkSync(`${process.cwd()}/uploads/news/${deletingFile}`, (err) => {
             if (err) {
